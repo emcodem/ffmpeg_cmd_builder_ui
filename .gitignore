@@ -3,8 +3,5 @@ app.d.ts
 app.d.ts.map
 app.js.map
 
-# Machine-specific ffmpeg capability dump — regenerate with: node app.js
-example_output.json
-
 # Claude Code session data
 .claude/

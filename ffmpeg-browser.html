@@ -380,7 +380,7 @@
 
         async function loadData() {
             try {
-                const response = await fetch('http://localhost:8000/example_output.json');
+                const response = await fetch('example_output.json');
                 data = await response.json();
                 initializeTabs();
                 loadCategory('protocols');
