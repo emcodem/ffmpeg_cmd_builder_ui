@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFmpeg Capabilities Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .tab-button {
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            border-left: 4px solid transparent;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            background: #eee;
+        }
+
+        .tab-button.active {
+            background: white;
+            border-left-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-bar {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ddd;
+            background: white;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: #667eea;
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .item:hover {
+            background: #f9f9f9;
+        }
+
+        .item.active {
+            background: #eef4ff;
+            border-left: 4px solid #667eea;
+            padding-left: 16px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .item-desc {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .details-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .detail-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .detail-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .detail-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .meta-item {
+            background: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+
+        .meta-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section-title {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .options-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .options-table th {
+            background: #f5f5f5;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .options-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .options-table tr:hover {
+            background: #fafafa;
+        }
+
+        .option-name {
+            font-weight: 600;
+            color: #667eea;
+            font-family: monospace;
+        }
+
+        .option-type {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .option-desc {
+            color: #666;
+        }
+
+        .enum-values {
+            margin-top: 8px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 2px solid #ddd;
+            font-size: 12px;
+        }
+
+        .enum-value {
+            margin: 4px 0;
+            padding: 4px;
+        }
+
+        .enum-name {
+            font-weight: 600;
+            color: #667eea;
+            font-family: monospace;
+        }
+
+        .placeholder {
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .count-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                max-height: 200px;
+            }
+
+            .tab-buttons {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+
+            .tab-button {
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                padding: 12px 15px;
+                white-space: nowrap;
+            }
+
+            .tab-button.active {
+                border-left: none;
+                border-bottom-color: #667eea;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 FFmpeg Capabilities Browser</h1>
+            <p>Explore protocols, muxers, encoders, and filters with detailed options</p>
+        </header>
+
+        <div class="content">
+            <div class="sidebar">
+                <div class="tab-buttons" id="tabButtons"></div>
+            </div>
+
+            <div class="main-area">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search by name or description...">
+                </div>
+
+                <div class="list-container">
+                    <ul class="item-list" id="itemList"></ul>
+                    <div class="no-results" id="noResults" style="display: none;">No items found</div>
+                </div>
+            </div>
+
+            <div class="details-panel" id="detailsPanel">
+                <div class="placeholder">Select an item to view details</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categories = {
+            protocols: { label: 'Protocols', icon: '🌐' },
+            muxers: { label: 'Muxers', icon: '📦' },
+            encoders: { label: 'Encoders', icon: '🎬' },
+            filters: { label: 'Filters', icon: '🎨' }
+        };
+
+        let data = {};
+        let currentCategory = 'protocols';
+        let filteredItems = [];
+        let selectedItem = null;
+
+        async function loadData() {
+            try {
+                const response = await fetch('http://localhost:8000/example_output.json');
+                data = await response.json();
+                initializeTabs();
+                loadCategory('protocols');
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.querySelector('.placeholder').textContent = 'Error loading data. Make sure server is running on port 8000.';
+            }
+        }
+
+        function initializeTabs() {
+            const tabButtonsContainer = document.getElementById('tabButtons');
+            Object.entries(categories).forEach(([key, { label }]) => {
+                const count = data[key]?.length || 0;
+                const button = document.createElement('button');
+                button.className = 'tab-button' + (key === 'protocols' ? ' active' : '');
+                button.innerHTML = `${label} <span class="count-badge">${count}</span>`;
+                button.onclick = () => loadCategory(key);
+                tabButtonsContainer.appendChild(button);
+            });
+        }
+
+        function loadCategory(categoryName) {
+            currentCategory = categoryName;
+            selectedItem = null;
+            document.querySelectorAll('.tab-button').forEach((btn, idx) => {
+                btn.classList.toggle('active', Object.keys(categories)[idx] === categoryName);
+            });
+            
+            filteredItems = data[categoryName] || [];
+            renderItemList();
+            updateDetailsPanel();
+        }
+
+        function renderItemList() {
+            const listContainer = document.getElementById('itemList');
+            const noResults = document.getElementById('noResults');
+            
+            listContainer.innerHTML = '';
+            
+            if (filteredItems.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            filteredItems.forEach((item, idx) => {
+                const li = document.createElement('li');
+                li.className = 'item' + (selectedItem === idx ? ' active' : '');
+                li.innerHTML = `
+                    <div class="item-name">${escapeHtml(item.name)}</div>
+                    <div class="item-desc">${escapeHtml(item.description || '')}</div>
+                `;
+                li.onclick = () => selectItem(idx);
+                listContainer.appendChild(li);
+            });
+        }
+
+        function selectItem(idx) {
+            selectedItem = idx;
+            renderItemList();
+            updateDetailsPanel();
+        }
+
+        function updateDetailsPanel() {
+            const panel = document.getElementById('detailsPanel');
+            
+            if (selectedItem === null || filteredItems.length === 0) {
+                panel.innerHTML = '<div class="placeholder">Select an item to view details</div>';
+                return;
+            }
+
+            const item = filteredItems[selectedItem];
+            let html = `
+                <div class="detail-header">
+                    <div class="detail-title">${escapeHtml(item.name)}</div>
+                    <div class="detail-meta">
+                        <div class="meta-item">Type: <span class="meta-value">${categories[currentCategory].label}</span></div>
+                        <div class="meta-item">Description: <span class="meta-value">${escapeHtml(item.description || 'N/A')}</span></div>
+            `;
+
+            if (item.flags) html += `<div class="meta-item">Flags: <span class="meta-value">${escapeHtml(item.flags)}</span></div>`;
+            if (item.direction) html += `<div class="meta-item">Direction: <span class="meta-value">${escapeHtml(item.direction)}</span></div>`;
+            if (item.canMux !== undefined) html += `<div class="meta-item">Mux: <span class="meta-value">${item.canMux ? 'Yes' : 'No'}</span></div>`;
+            if (item.canDemux !== undefined) html += `<div class="meta-item">Demux: <span class="meta-value">${item.canDemux ? 'Yes' : 'No'}</span></div>`;
+
+            html += '</div>';
+
+            // Encoder-specific
+            if (currentCategory === 'encoders' && item.fullHelp) {
+                const enc = item.fullHelp;
+                if (enc.generalCapabilities) html += `<div class="section"><div class="section-title">Capabilities</div>${escapeHtml(enc.generalCapabilities)}</div>`;
+                if (enc.threading) html += `<div class="section"><div class="section-title">Threading</div>${escapeHtml(enc.threading)}</div>`;
+                if (enc.pixelFormats?.length) {
+                    html += `<div class="section"><div class="section-title">Pixel Formats</div><div>${enc.pixelFormats.map(pf => `<code>${escapeHtml(pf)}</code>`).join(' ')}</div></div>`;
+                }
+            }
+
+            // Filter-specific
+            if (currentCategory === 'filters' && item.fullHelp) {
+                const filter = item.fullHelp;
+                if (filter.inputs?.length) {
+                    html += '<div class="section"><div class="section-title">Inputs</div><table class="options-table"><tr><th>ID</th><th>Label</th><th>Type</th></tr>';
+                    filter.inputs.forEach(inp => {
+                        html += `<tr><td>${escapeHtml(inp.id)}</td><td>${escapeHtml(inp.label)}</td><td><span class="option-type">${escapeHtml(inp.type)}</span></td></tr>`;
+                    });
+                    html += '</table></div>';
+                }
+                if (filter.outputs?.length) {
+                    html += '<div class="section"><div class="section-title">Outputs</div><table class="options-table"><tr><th>ID</th><th>Label</th><th>Type</th></tr>';
+                    filter.outputs.forEach(out => {
+                        html += `<tr><td>${escapeHtml(out.id)}</td><td>${escapeHtml(out.label)}</td><td><span class="option-type">${escapeHtml(out.type)}</span></td></tr>`;
+                    });
+                    html += '</table></div>';
+                }
+            }
+
+            // Options for all types
+            const options = item.options || item.fullHelp?.options;
+            if (options?.length) {
+                html += '<div class="section"><div class="section-title">Options</div><table class="options-table"><tr><th>Name</th><th>Type</th><th>Description</th><th>Default</th></tr>';
+                options.forEach(opt => {
+                    html += `<tr><td><span class="option-name">${escapeHtml(opt.name)}</span></td><td><span class="option-type">${escapeHtml(opt.type)}</span></td><td><span class="option-desc">${escapeHtml(opt.description || '')}</span>`;
+                    
+                    if (opt.values?.length) {
+                        html += `<div class="enum-values"><strong>Values:</strong>`;
+                        opt.values.forEach(v => {
+                            html += `<div class="enum-value"><span class="enum-name">${escapeHtml(v.name)}</span> = ${escapeHtml(String(v.value))} - ${escapeHtml(v.description || '')}</div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += '</td><td>' + (opt.default !== undefined ? escapeHtml(String(opt.default)) : '-') + '</td></tr>';
+                });
+                html += '</table></div>';
+            }
+
+            panel.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const allItems = data[currentCategory] || [];
+            filteredItems = allItems.filter(item => 
+                item.name.toLowerCase().includes(query) ||
+                (item.description || '').toLowerCase().includes(query)
+            );
+            selectedItem = filteredItems.length > 0 ? 0 : null;
+            renderItemList();
+            updateDetailsPanel();
+        });
+
+        loadData();
+    </script>
+</body>
+</html>

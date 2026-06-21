@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFmpeg Command Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #242424;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+            background: #1f1f1f;
+            color: #e0e0e0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #404040;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1em;
+            color: #909090;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #e0e0e0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .section h3 {
+            color: #e0e0e0;
+        }
+
+        .section p {
+            color: #b0b0b0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        select, input[type="text"], input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #404040;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+            background: #2a2a2a;
+            color: #e0e0e0;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .info-box {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            border: 1px solid #333;
+        }
+
+        .info-box strong {
+            color: #e0e0e0;
+        }
+
+        .info-box p {
+            color: #b0b0b0;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin: 5px 0;
+        }
+
+        .options-table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .options-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            background: #2a2a2a;
+            font-size: 0.9em;
+            color: #e0e0e0;
+        }
+
+        .options-table thead {
+            background: #667eea;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .options-table th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .options-table td {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            vertical-align: top;
+        }
+
+        .options-table tbody tr:hover {
+            background: #323232;
+        }
+
+        .option-name {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+            color: #667eea;
+            white-space: nowrap;
+            font-size: 0.85em;
+        }
+
+        .option-type {
+            font-size: 0.75em;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .option-desc {
+            color: #666;
+            font-size: 0.8em;
+            line-height: 1.3;
+            max-width: 250px;
+            word-wrap: break-word;
+        }
+
+        .option-input {
+            padding: 6px !important;
+            font-size: 0.85em !important;
+            width: 100%;
+        }
+
+        .cmd-output {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            overflow-x: auto;
+            border: 1px solid #333;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .enum-values {
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .selected-items {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .selected-item {
+            display: inline-flex;
+            align-items: center;
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 5px 5px 5px 0;
+            font-size: 0.9em;
+            gap: 8px;
+        }
+
+        .selected-item .remove {
+            cursor: pointer;
+            font-weight: bold;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+
+        .selected-item .remove:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .add-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #218838;
+        }
+
+        .multi-section {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            border: 1px solid #333;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .error {
+            background: #3a2a2a;
+            color: #ff6b6b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-bottom: none;
+                border-left: 4px solid transparent;
+            }
+
+            .tab.active {
+                border-left-color: #667eea;
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 FFmpeg Command Builder</h1>
+            <p>Select components and configure options to generate FFmpeg commands</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2>Build Complex FFmpeg Commands</h2>
+                <p style="color: #666; margin-bottom: 15px;">Add multiple encoders, filters, and protocols to create comprehensive FFmpeg commands.</p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('encoder')">🎥 Add Encoder</button>
+                <button class="tab" onclick="switchTab('filter')">🎨 Add Filter</button>
+                <button class="tab" onclick="switchTab('protocol')">🌐 Input Protocol</button>
+                <button class="tab" onclick="switchTab('muxer')">📦 Output Format</button>
+            </div>
+
+            <!-- ENCODER TAB -->
+            <div id="encoder-tab" class="tab-content active">
+                <div class="section">
+                    <h2>Add Encoder</h2>
+                    <div class="form-group">
+                        <label for="encoder-select">Select Encoder:</label>
+                        <select id="encoder-select" onchange="loadEncoderOptions()">
+                            <option value="">-- Choose an encoder --</option>
+                        </select>
+                    </div>
+                    <div id="encoder-info"></div>
+                </div>
+
+                <div class="section" id="encoder-options-section" style="display: none;">
+                    <h2>Configure Options</h2>
+                    <div class="options-table-wrapper">
+                        <table class="options-table" id="encoder-options-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 120px;">Option</th>
+                                    <th style="width: 80px;">Type</th>
+                                    <th style="width: 250px;">Description</th>
+                                    <th style="width: 150px;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="encoder-options-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="add-btn" onclick="addEncoderToCommand()">✓ Add This Encoder to Command</button>
+                </div>
+            </div>
+
+            <!-- FILTER TAB -->
+            <div id="filter-tab" class="tab-content">
+                <div class="section">
+                    <h2>Add Filter</h2>
+                    <div class="form-group">
+                        <label for="filter-category-select">Filter by Description Category:</label>
+                        <select id="filter-category-select" onchange="filterFiltersByCategory()">
+                            <option value="">-- All Filters --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filter-select">Select Filter:</label>
+                        <select id="filter-select" onchange="loadFilterOptions()">
+                            <option value="">-- Choose a filter --</option>
+                        </select>
+                    </div>
+                    <div id="filter-info"></div>
+                </div>
+
+                <div class="section" id="filter-options-section" style="display: none;">
+                    <h2>Filter Inputs</h2>
+                    <div id="filter-inputs-info"></div>
+                </div>
+
+                <div class="section" id="filter-options-section2" style="display: none;">
+                    <h2>Configure Options</h2>
+                    <div class="options-table-wrapper">
+                        <table class="options-table" id="filter-options-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 120px;">Option</th>
+                                    <th style="width: 80px;">Type</th>
+                                    <th style="width: 250px;">Description</th>
+                                    <th style="width: 150px;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="filter-options-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="add-btn" onclick="addFilterToCommand()">✓ Add This Filter to Command</button>
+                </div>
+            </div>
+
+            <!-- PROTOCOL TAB -->
+            <div id="protocol-tab" class="tab-content">
+                <div class="section">
+                    <h2>Configure Input Protocol</h2>
+                    <div class="form-group">
+                        <label for="protocol-select">Select Protocol:</label>
+                        <select id="protocol-select" onchange="loadProtocolOptions()">
+                            <option value="">-- Choose a protocol --</option>
+                        </select>
+                    </div>
+                    <div id="protocol-info"></div>
+                </div>
+
+                <div class="section" id="protocol-options-section" style="display: none;">
+                    <h2>Configure Options</h2>
+                    <div class="options-table-wrapper">
+                        <table class="options-table" id="protocol-options-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 120px;">Option</th>
+                                    <th style="width: 80px;">Type</th>
+                                    <th style="width: 250px;">Description</th>
+                                    <th style="width: 150px;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="protocol-options-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="add-btn" onclick="addProtocolToCommand()">✓ Set This as Input Protocol</button>
+                </div>
+            </div>
+
+            <!-- MUXER TAB -->
+            <div id="muxer-tab" class="tab-content">
+                <div class="section">
+                    <h2>Configure Output Format</h2>
+                    <div class="form-group">
+                        <label for="muxer-select">Select Output Format (Muxer):</label>
+                        <select id="muxer-select" onchange="loadMuxerOptions()">
+                            <option value="">-- Choose a muxer --</option>
+                        </select>
+                    </div>
+                    <div id="muxer-info"></div>
+                </div>
+
+                <div class="section" id="muxer-options-section" style="display: none;">
+                    <h2>Configure Options</h2>
+                    <div class="options-table-wrapper">
+                        <table class="options-table" id="muxer-options-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 120px;">Option</th>
+                                    <th style="width: 80px;">Type</th>
+                                    <th style="width: 250px;">Description</th>
+                                    <th style="width: 150px;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="muxer-options-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="add-btn" onclick="addMuxerToCommand()">✓ Set This as Output Format</button>
+                </div>
+            </div>
+
+            <!-- FINAL COMMAND SECTION -->
+            <div class="section" style="margin-top: 40px; padding: 20px; background: #2a2a2a; border-left: 4px solid #667eea; border: 1px solid #333;">
+                <h2>📋 Complete FFmpeg Command</h2>
+                
+                <div class="selected-items" id="selected-components" style="min-height: 50px;">
+                    <strong>Selected Components:</strong><br>
+                    <div id="components-list" style="margin-top: 10px;">
+                        <span style="color: #999;">No components selected yet. Add encoders, filters, and configure input/output above.</span>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 20px; margin-bottom: 10px;">Generated Command:</h3>
+                <div class="cmd-output" id="final-cmd" style="min-height: 80px;">ffmpeg -i input.mp4 -c:v libx264 -f mp4 output.mp4</div>
+                <button class="copy-btn" onclick="copyToClipboard('final-cmd')" style="margin-top: 15px;">Copy Complete Command</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {};
+        let selectedOptions = {
+            encoder: {},
+            filter: {},
+            protocol: {},
+            muxer: {}
+        };
+
+        let commandComponents = {
+            protocol: null,
+            encoders: [],
+            filters: [],
+            muxer: null
+        };
+
+        async function loadData() {
+            try {
+                const response = await fetch('http://localhost:8000/example_output.json');
+                allData = await response.json();
+                populateSelects();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading FFmpeg data. Make sure the server is running on port 8000.');
+            }
+        }
+
+        function populateSelects() {
+            // Populate encoders
+            const encoderSelect = document.getElementById('encoder-select');
+            if (allData.encoders) {
+                allData.encoders.forEach(encoder => {
+                    const option = document.createElement('option');
+                    option.value = encoder.name;
+                    option.textContent = encoder.name;
+                    encoderSelect.appendChild(option);
+                });
+            }
+
+            // Populate filters
+            const filterSelect = document.getElementById('filter-select');
+            if (allData.filters) {
+                allData.filters.forEach(filter => {
+                    const option = document.createElement('option');
+                    option.value = filter.name;
+                    option.textContent = filter.description ? `${filter.name} - ${filter.description}` : filter.name;
+                    option.title = filter.description || '';
+                    filterSelect.appendChild(option);
+                });
+                
+                // Populate filter category dropdown with distinct descriptions
+                const distinctDescriptions = [...new Set(
+                    allData.filters
+                        .map(f => f.description)
+                        .filter(desc => desc && desc.trim().length > 0)
+                        .sort()
+                )];
+                
+                const categorySelect = document.getElementById('filter-category-select');
+                distinctDescriptions.forEach(description => {
+                    const option = document.createElement('option');
+                    option.value = description;
+                    option.textContent = description;
+                    categorySelect.appendChild(option);
+                });
+            }
+
+            // Populate protocols
+            const protocolSelect = document.getElementById('protocol-select');
+            if (allData.protocols) {
+                allData.protocols.forEach(protocol => {
+                    const option = document.createElement('option');
+                    option.value = protocol.name;
+                    option.textContent = protocol.name;
+                    protocolSelect.appendChild(option);
+                });
+            }
+
+            // Populate muxers
+            const muxerSelect = document.getElementById('muxer-select');
+            if (allData.muxers) {
+                allData.muxers.forEach(muxer => {
+                    const option = document.createElement('option');
+                    option.value = muxer.name;
+                    option.textContent = muxer.name;
+                    muxerSelect.appendChild(option);
+                });
+            }
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function loadEncoderOptions() {
+            const name = document.getElementById('encoder-select').value;
+            if (!name) {
+                document.getElementById('encoder-info').innerHTML = '';
+                document.getElementById('encoder-options-section').style.display = 'none';
+                return;
+            }
+
+            const encoder = allData.encoders?.find(e => e.name === name);
+            if (!encoder) return;
+
+            selectedOptions.encoder = {};
+
+            // Display info
+            let infoHtml = `<div class="info-box">
+                <p><strong>Description:</strong> ${escapeHtml(encoder.description || 'N/A')}</p>`;
+            
+            if (encoder.fullHelp?.generalCapabilities) {
+                infoHtml += `<p><strong>Capabilities:</strong> ${escapeHtml(encoder.fullHelp.generalCapabilities)}</p>`;
+            }
+            if (encoder.fullHelp?.threading) {
+                infoHtml += `<p><strong>Threading:</strong> ${escapeHtml(encoder.fullHelp.threading)}</p>`;
+            }
+            if (encoder.fullHelp?.pixelFormats?.length) {
+                infoHtml += `<p><strong>Pixel Formats:</strong> ${encoder.fullHelp.pixelFormats.slice(0, 5).join(', ')}</p>`;
+            }
+            infoHtml += '</div>';
+            document.getElementById('encoder-info').innerHTML = infoHtml;
+
+            // Display options
+            const options = (encoder.fullHelp && typeof encoder.fullHelp === 'object' && encoder.fullHelp.options) || encoder.options || [];
+            if (options.length > 0) {
+                document.getElementById('encoder-options-section').style.display = 'block';
+                const tbody = document.getElementById('encoder-options-body');
+                tbody.innerHTML = '';
+
+                options.forEach(opt => {
+                    const row = document.createElement('tr');
+                    let valueInput = `<input type="text" class="option-input" data-option="${opt.name}" placeholder="${opt.default || ''}" onchange="updateEncoderCmd()">`;
+                    
+                    if (opt.values?.length) {
+                        valueInput = `<select class="option-input" data-option="${opt.name}" onchange="updateEncoderCmd()">
+                            <option value="">-- Select --</option>`;
+                        opt.values.forEach(v => {
+                            valueInput += `<option value="${v.value}">${v.name}</option>`;
+                        });
+                        valueInput += '</select>';
+                    }
+
+                    row.innerHTML = `
+                        <td><span class="option-name">${escapeHtml(opt.name)}</span></td>
+                        <td><span class="option-type">${escapeHtml(opt.type || 'string')}</span></td>
+                        <td><span class="option-desc">${escapeHtml(opt.description || '')}</span></td>
+                        <td>${valueInput}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                document.getElementById('encoder-options-section').style.display = 'none';
+            }
+
+            updateEncoderCmd();
+        }
+
+        function filterFiltersByCategory() {
+            const selectedCategory = document.getElementById('filter-category-select').value;
+            const filterSelect = document.getElementById('filter-select');
+            const options = filterSelect.querySelectorAll('option');
+            
+            options.forEach(option => {
+                if (option.value === '') {
+                    // Always show the placeholder option
+                    option.style.display = 'block';
+                    return;
+                }
+                
+                const filter = allData.filters?.find(f => f.name === option.value);
+                if (!filter) return;
+                
+                if (selectedCategory === '') {
+                    // Show all filters
+                    option.style.display = 'block';
+                } else {
+                    // Show only filters matching the selected category
+                    option.style.display = (filter.description === selectedCategory) ? 'block' : 'none';
+                }
+            });
+        }
+
+        function loadFilterOptions() {
+            const name = document.getElementById('filter-select').value;
+            if (!name) {
+                document.getElementById('filter-info').innerHTML = '';
+                document.getElementById('filter-options-section').style.display = 'none';
+                document.getElementById('filter-options-section2').style.display = 'none';
+                return;
+            }
+
+            const filter = allData.filters?.find(f => f.name === name);
+            if (!filter) return;
+
+            selectedOptions.filter = {};
+
+            // Display info
+            let infoHtml = `<div class="info-box">
+                <p><strong>Description:</strong> ${escapeHtml(filter.description || 'N/A')}</p>`;
+            infoHtml += '</div>';
+            document.getElementById('filter-info').innerHTML = infoHtml;
+
+            // Display inputs
+            const inputs = filter.fullHelp?.inputs || [];
+            if (inputs.length > 0) {
+                document.getElementById('filter-options-section').style.display = 'block';
+                let inputsHtml = '<table class="options-table"><tr><th>Input</th><th>Label</th><th>Type</th></tr>';
+                inputs.forEach(inp => {
+                    inputsHtml += `<tr><td>${escapeHtml(inp.id)}</td><td>${escapeHtml(inp.label)}</td><td>${escapeHtml(inp.type)}</td></tr>`;
+                });
+                inputsHtml += '</table>';
+                document.getElementById('filter-inputs-info').innerHTML = inputsHtml;
+            } else {
+                document.getElementById('filter-options-section').style.display = 'none';
+            }
+
+            // Display options
+            const options = (filter.fullHelp && typeof filter.fullHelp === 'object' && filter.fullHelp.options) || filter.options || [];
+            if (options.length > 0) {
+                document.getElementById('filter-options-section2').style.display = 'block';
+                const tbody = document.getElementById('filter-options-body');
+                tbody.innerHTML = '';
+
+                options.forEach(opt => {
+                    const row = document.createElement('tr');
+                    let valueInput = `<input type="text" class="option-input" data-option="${opt.name}" placeholder="${opt.default || ''}" onchange="updateFilterCmd()">`;
+                    
+                    if (opt.values?.length) {
+                        valueInput = `<select class="option-input" data-option="${opt.name}" onchange="updateFilterCmd()">
+                            <option value="">-- Select --</option>`;
+                        opt.values.forEach(v => {
+                            valueInput += `<option value="${v.value}">${v.name}</option>`;
+                        });
+                        valueInput += '</select>';
+                    }
+
+                    row.innerHTML = `
+                        <td><span class="option-name">${escapeHtml(opt.name)}</span></td>
+                        <td><span class="option-type">${escapeHtml(opt.type || 'string')}</span></td>
+                        <td><span class="option-desc">${escapeHtml(opt.description || '')}</span></td>
+                        <td>${valueInput}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                document.getElementById('filter-options-section2').style.display = 'none';
+            }
+
+            updateFilterCmd();
+        }
+
+        function loadProtocolOptions() {
+            const name = document.getElementById('protocol-select').value;
+            if (!name) {
+                document.getElementById('protocol-info').innerHTML = '';
+                document.getElementById('protocol-options-section').style.display = 'none';
+                return;
+            }
+
+            const protocol = allData.protocols?.find(p => p.name === name);
+            if (!protocol) return;
+
+            selectedOptions.protocol = {};
+
+            // Display info
+            let infoHtml = `<div class="info-box">
+                <p><strong>Description:</strong> ${escapeHtml(protocol.description || 'N/A')}</p>`;
+            if (protocol.direction) {
+                infoHtml += `<p><strong>Direction:</strong> ${escapeHtml(protocol.direction)}</p>`;
+            }
+            infoHtml += '</div>';
+            document.getElementById('protocol-info').innerHTML = infoHtml;
+
+            // Display options
+            const options = protocol.options || (protocol.fullHelp && typeof protocol.fullHelp === 'object' && protocol.fullHelp.options) || [];
+            if (options.length > 0) {
+                document.getElementById('protocol-options-section').style.display = 'block';
+                const tbody = document.getElementById('protocol-options-body');
+                tbody.innerHTML = '';
+
+                options.forEach(opt => {
+                    const row = document.createElement('tr');
+                    let valueInput = `<input type="text" class="option-input" data-option="${opt.name}" placeholder="${opt.default || ''}" onchange="updateProtocolCmd()">`;
+                    
+                    if (opt.values?.length) {
+                        valueInput = `<select class="option-input" data-option="${opt.name}" onchange="updateProtocolCmd()">
+                            <option value="">-- Select --</option>`;
+                        opt.values.forEach(v => {
+                            valueInput += `<option value="${v.value}">${v.name}</option>`;
+                        });
+                        valueInput += '</select>';
+                    }
+
+                    row.innerHTML = `
+                        <td><span class="option-name">${escapeHtml(opt.name)}</span></td>
+                        <td><span class="option-type">${escapeHtml(opt.type || 'string')}</span></td>
+                        <td><span class="option-desc">${escapeHtml(opt.description || '')}</span></td>
+                        <td>${valueInput}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                document.getElementById('protocol-options-section').style.display = 'none';
+            }
+
+            updateProtocolCmd();
+        }
+
+        function loadMuxerOptions() {
+            const name = document.getElementById('muxer-select').value;
+            if (!name) {
+                document.getElementById('muxer-info').innerHTML = '';
+                document.getElementById('muxer-options-section').style.display = 'none';
+                return;
+            }
+
+            const muxer = allData.muxers?.find(m => m.name === name);
+            if (!muxer) return;
+
+            selectedOptions.muxer = {};
+
+            // Display info
+            let infoHtml = `<div class="info-box">
+                <p><strong>Description:</strong> ${escapeHtml(muxer.description || 'N/A')}</p>`;
+            if (muxer.canMux !== undefined) {
+                infoHtml += `<p><strong>Can Mux:</strong> ${muxer.canMux ? 'Yes' : 'No'}</p>`;
+            }
+            infoHtml += '</div>';
+            document.getElementById('muxer-info').innerHTML = infoHtml;
+
+            // Display options
+            const options = muxer.options || (muxer.fullHelp && typeof muxer.fullHelp === 'object' && muxer.fullHelp.options) || [];
+            if (options.length > 0) {
+                document.getElementById('muxer-options-section').style.display = 'block';
+                const tbody = document.getElementById('muxer-options-body');
+                tbody.innerHTML = '';
+
+                options.forEach(opt => {
+                    const row = document.createElement('tr');
+                    let valueInput = `<input type="text" class="option-input" data-option="${opt.name}" placeholder="${opt.default || ''}" onchange="updateMuxerCmd()">`;
+                    
+                    if (opt.values?.length) {
+                        valueInput = `<select class="option-input" data-option="${opt.name}" onchange="updateMuxerCmd()">
+                            <option value="">-- Select --</option>`;
+                        opt.values.forEach(v => {
+                            valueInput += `<option value="${v.value}">${v.name}</option>`;
+                        });
+                        valueInput += '</select>';
+                    }
+
+                    row.innerHTML = `
+                        <td><span class="option-name">${escapeHtml(opt.name)}</span></td>
+                        <td><span class="option-type">${escapeHtml(opt.type || 'string')}</span></td>
+                        <td><span class="option-desc">${escapeHtml(opt.description || '')}</span></td>
+                        <td>${valueInput}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                document.getElementById('muxer-options-section').style.display = 'none';
+            }
+
+            updateMuxerCmd();
+        }
+
+        function getSelectedOptions(type) {
+            const options = {};
+            document.querySelectorAll(`#${type}-options-table input, #${type}-options-table select`).forEach(input => {
+                if (input.value) {
+                    const optName = input.dataset.option;
+                    options[optName] = input.value;
+                }
+            });
+            return options;
+        }
+
+        function updateEncoderCmd() {
+            const encoderName = document.getElementById('encoder-select').value;
+            const opts = getSelectedOptions('encoder');
+            
+            let cmd = `ffmpeg -i input.mp4`;
+            let optStr = '';
+            Object.entries(opts).forEach(([key, val]) => {
+                optStr += ` -${key} ${val}`;
+            });
+            cmd += optStr + ` -c:v ${encoderName} output.mp4`;
+            
+            document.getElementById('encoder-cmd').textContent = cmd;
+        }
+
+        function updateFilterCmd() {
+            const filterName = document.getElementById('filter-select').value;
+            const opts = getSelectedOptions('filter');
+            
+            let filterStr = filterName;
+            if (Object.keys(opts).length > 0) {
+                filterStr += '=';
+                filterStr += Object.entries(opts).map(([k, v]) => `${k}=${v}`).join(':');
+            }
+            
+            let cmd = `ffmpeg -i input.mp4 -vf "${filterStr}" output.mp4`;
+            document.getElementById('filter-cmd').textContent = cmd;
+        }
+
+        function updateProtocolCmd() {
+            const protocolName = document.getElementById('protocol-select').value;
+            const opts = getSelectedOptions('protocol');
+            
+            let url = `${protocolName}://example.com`;
+            let optStr = '';
+            Object.entries(opts).forEach(([key, val]) => {
+                optStr += ` -${key} ${val}`;
+            });
+            
+            let cmd = `ffmpeg${optStr} -i "${url}" output.mp4`;
+            document.getElementById('protocol-cmd').textContent = cmd;
+        }
+
+        function updateMuxerCmd() {
+            const muxerName = document.getElementById('muxer-select').value;
+            const opts = getSelectedOptions('muxer');
+            
+            let optStr = '';
+            Object.entries(opts).forEach(([key, val]) => {
+                optStr += ` -${key} ${val}`;
+            });
+            
+            let cmd = `ffmpeg -i input.mp4 -c:v libx264${optStr} -f ${muxerName} output.mp4`;
+            document.getElementById('muxer-cmd').textContent = cmd;
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy Command';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function addEncoderToCommand() {
+            const name = document.getElementById('encoder-select').value;
+            if (!name) {
+                alert('Please select an encoder');
+                return;
+            }
+            const opts = getSelectedOptions('encoder');
+            commandComponents.encoders.push({ name, options: opts });
+            updateFinalCommand();
+            document.getElementById('encoder-select').value = '';
+            document.getElementById('encoder-info').innerHTML = '';
+            document.getElementById('encoder-options-section').style.display = 'none';
+        }
+
+        function addFilterToCommand() {
+            const name = document.getElementById('filter-select').value;
+            if (!name) {
+                alert('Please select a filter');
+                return;
+            }
+            const opts = getSelectedOptions('filter');
+            commandComponents.filters.push({ name, options: opts });
+            updateFinalCommand();
+            document.getElementById('filter-select').value = '';
+            document.getElementById('filter-info').innerHTML = '';
+            document.getElementById('filter-options-section').style.display = 'none';
+            document.getElementById('filter-options-section2').style.display = 'none';
+        }
+
+        function addProtocolToCommand() {
+            const name = document.getElementById('protocol-select').value;
+            if (!name) {
+                alert('Please select a protocol');
+                return;
+            }
+            const opts = getSelectedOptions('protocol');
+            commandComponents.protocol = { name, options: opts };
+            updateFinalCommand();
+        }
+
+        function addMuxerToCommand() {
+            const name = document.getElementById('muxer-select').value;
+            if (!name) {
+                alert('Please select a muxer');
+                return;
+            }
+            const opts = getSelectedOptions('muxer');
+            commandComponents.muxer = { name, options: opts };
+            updateFinalCommand();
+        }
+
+        function removeEncoder(index) {
+            commandComponents.encoders.splice(index, 1);
+            updateFinalCommand();
+        }
+
+        function removeFilter(index) {
+            commandComponents.filters.splice(index, 1);
+            updateFinalCommand();
+        }
+
+        function updateFinalCommand() {
+            let cmd = 'ffmpeg';
+            let componentsList = '';
+
+            // Add protocol options
+            if (commandComponents.protocol) {
+                const p = commandComponents.protocol;
+                Object.entries(p.options).forEach(([key, val]) => {
+                    cmd += ` -${key} ${val}`;
+                });
+                cmd += ` -i "${p.name}://example.com/video"`;
+                componentsList += `<span class="selected-item">${commandComponents.protocol.name} (input) <span class="remove" onclick="commandComponents.protocol=null; updateFinalCommand();">×</span></span>`;
+            } else {
+                cmd += ' -i input.mp4';
+            }
+
+            // Add video filters
+            if (commandComponents.filters.length > 0) {
+                let filterStr = commandComponents.filters.map(f => {
+                    let fStr = f.name;
+                    if (Object.keys(f.options).length > 0) {
+                        fStr += '=' + Object.entries(f.options).map(([k, v]) => `${k}=${v}`).join(':');
+                    }
+                    return fStr;
+                }).join(',');
+                cmd += ` -vf "${filterStr}"`;
+                commandComponents.filters.forEach((f, i) => {
+                    componentsList += `<span class="selected-item">${f.name} (filter) <span class="remove" onclick="removeFilter(${i});">×</span></span>`;
+                });
+            }
+
+            // Add encoders
+            let encIdx = 0;
+            commandComponents.encoders.forEach((enc, i) => {
+                const encType = encIdx === 0 ? 'v' : 'a';
+                cmd += ` -c:${encType} ${enc.name}`;
+                Object.entries(enc.options).forEach(([key, val]) => {
+                    cmd += ` -${key} ${val}`;
+                });
+                componentsList += `<span class="selected-item">${enc.name} (encoder) <span class="remove" onclick="removeEncoder(${i});">×</span></span>`;
+                encIdx++;
+            });
+
+            // Add muxer options
+            if (commandComponents.muxer) {
+                const m = commandComponents.muxer;
+                Object.entries(m.options).forEach(([key, val]) => {
+                    cmd += ` -${key} ${val}`;
+                });
+                cmd += ` -f ${m.name}`;
+                componentsList += `<span class="selected-item">${m.name} (output) <span class="remove" onclick="commandComponents.muxer=null; updateFinalCommand();">×</span></span>`;
+            }
+
+            cmd += ' output.mp4';
+
+            document.getElementById('final-cmd').textContent = cmd;
+            document.getElementById('components-list').innerHTML = componentsList || '<span style="color: #999;">No components selected yet.</span>';
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+ 
+ 
+    {
+      "name": "Compile and Run",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/app.js",
+      "args": ["--limit=100000","--skip=0","--skip-demuxers"],
+      "preLaunchTask": "Compile TypeScript",
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**"],
+      "console": "integratedTerminal"
+    }
+  ]
+}

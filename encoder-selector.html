@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFmpeg Encoder Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 25px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .encoder-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .encoder-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .encoder-info p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .encoder-info strong {
+            color: #333;
+        }
+
+        .options-grid {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .options-grid thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .options-grid th {
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #ddd;
+        }
+
+        .options-grid td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        .options-grid tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .options-grid tbody tr:hover {
+            background: #f0f0ff;
+        }
+
+        .option-name {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+            word-break: break-all;
+            max-width: 150px;
+        }
+
+        .option-type {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            white-space: nowrap;
+        }
+
+        .option-description {
+            color: #666;
+            font-size: 0.85em;
+            line-height: 1.3;
+        }
+
+        .option-input-cell {
+            min-width: 150px;
+        }
+
+        .option-input-cell select,
+        .option-input-cell input {
+            width: 100%;
+            padding: 6px !important;
+            font-size: 0.85em !important;
+            box-sizing: border-box;
+        }
+
+        .option-default {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .command-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin-top: 20px;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3c3;
+        }
+
+        .no-encoders {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 FFmpeg Encoder Selector</h1>
+            <p>Build and configure your FFmpeg encoder command</p>
+        </header>
+
+        <div class="content">
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="success" class="success" style="display: none;"></div>
+
+            <div class="section">
+                <h2>Select Encoder</h2>
+                <div class="form-group">
+                    <label for="encoderSelect">Choose an encoder:</label>
+                    <select id="encoderSelect">
+                        <option value="">-- Select an encoder --</option>
+                    </select>
+                </div>
+
+                <div id="encoderInfo" class="encoder-info" style="display: none;">
+                    <h3 id="encoderName"></h3>
+                    <p><strong>Description:</strong> <span id="encoderDesc"></span></p>
+                    <p id="generalCaps" style="display: none;"><strong>General Capabilities:</strong> <span id="generalCapsText"></span></p>
+                    <p id="threading" style="display: none;"><strong>Threading:</strong> <span id="threadingText"></span></p>
+                    <p id="pixelFormats" style="display: none;"><strong>Pixel Formats:</strong> <span id="pixelFormatsText"></span></p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Configure Options</h2>
+                <div id="optionsContainer"></div>
+            </div>
+
+            <div class="section">
+                <h2>FFmpeg Command</h2>
+                <div class="command-output" id="commandOutput">
+                    Select an encoder to see the command preview
+                </div>
+                <button class="copy-btn" onclick="copyCommand()">Copy Command</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let encodersData = [];
+
+        // Load JSON data
+        async function loadData() {
+            try {
+                const response = await fetch('example_output.json');
+                if (!response.ok) throw new Error('Failed to load JSON');
+                
+                const data = await response.json();
+                encodersData = data.encoders || [];
+                
+                if (encodersData.length === 0) {
+                    showError('No encoders found in the data');
+                    return;
+                }
+
+                populateEncoderSelect();
+            } catch (error) {
+                showError(`Failed to load data: ${error.message}`);
+            }
+        }
+
+        function populateEncoderSelect() {
+            const select = document.getElementById('encoderSelect');
+            encodersData.forEach(encoder => {
+                const option = document.createElement('option');
+                option.value = encoder.name;
+                option.textContent = `${encoder.name} - ${encoder.description}`;
+                select.appendChild(option);
+            });
+        }
+
+        document.getElementById('encoderSelect').addEventListener('change', onEncoderChange);
+
+        function onEncoderChange() {
+            const selectedName = document.getElementById('encoderSelect').value;
+            const encoder = encodersData.find(e => e.name === selectedName);
+
+            if (!encoder) {
+                document.getElementById('encoderInfo').style.display = 'none';
+                document.getElementById('optionsContainer').innerHTML = '';
+                document.getElementById('commandOutput').textContent = 'Select an encoder to see the command preview';
+                return;
+            }
+
+            // Get the full encoder details (either from fullHelp or direct properties)
+            const fullEncoder = encoder.fullHelp || encoder;
+
+            // Show encoder info
+            const infoDiv = document.getElementById('encoderInfo');
+            document.getElementById('encoderName').textContent = encoder.name;
+            document.getElementById('encoderDesc').textContent = fullEncoder.description || encoder.description;
+
+            if (fullEncoder.generalCapabilities) {
+                document.getElementById('generalCaps').style.display = 'block';
+                document.getElementById('generalCapsText').textContent = fullEncoder.generalCapabilities;
+            } else {
+                document.getElementById('generalCaps').style.display = 'none';
+            }
+
+            if (fullEncoder.threading) {
+                document.getElementById('threading').style.display = 'block';
+                document.getElementById('threadingText').textContent = fullEncoder.threading;
+            } else {
+                document.getElementById('threading').style.display = 'none';
+            }
+
+            if (fullEncoder.pixelFormats && fullEncoder.pixelFormats.length > 0) {
+                document.getElementById('pixelFormats').style.display = 'block';
+                document.getElementById('pixelFormatsText').textContent = fullEncoder.pixelFormats.join(', ');
+            } else {
+                document.getElementById('pixelFormats').style.display = 'none';
+            }
+
+            infoDiv.style.display = 'block';
+
+            // Render options - use fullEncoder.options if available
+            const options = fullEncoder.options || [];
+            renderOptions(options);
+            updateCommandOutput();
+        }
+
+        function renderOptions(options) {
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            if (options.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No options available for this encoder</p>';
+                return;
+            }
+
+            let html = `
+                <table class="options-grid">
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            options.forEach(option => {
+                html += `<tr>`;
+                html += `<td class="option-name">${option.name}</td>`;
+                html += `<td><span class="option-type">${option.type}</span></td>`;
+                html += `<td class="option-description">${option.description}`;
+                if (option.default !== undefined) {
+                    html += `<br><span class="option-default">Default: ${option.default}</span>`;
+                }
+                html += `</td>`;
+                html += `<td class="option-input-cell">`;
+
+                if (option.values && option.values.length > 0) {
+                    html += `<select id="opt_${option.name}" onchange="updateCommandOutput()">`;
+                    html += `<option value="">-- Use default --</option>`;
+                    option.values.forEach(val => {
+                        html += `<option value="${val.value}">${val.name}</option>`;
+                    });
+                    html += `</select>`;
+                } else if (option.type.includes('string') || option.type.includes('int') || option.type.includes('float')) {
+                    html += `<input type="text" id="opt_${option.name}" placeholder="Enter value" onchange="updateCommandOutput()" onkeyup="updateCommandOutput()">`;
+                }
+
+                html += `</td>`;
+                html += `</tr>`;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function updateCommandOutput() {
+            const selectedName = document.getElementById('encoderSelect').value;
+            if (!selectedName) {
+                document.getElementById('commandOutput').textContent = 'Select an encoder to see the command preview';
+                return;
+            }
+
+            const encoder = encodersData.find(e => e.name === selectedName);
+            if (!encoder) return;
+
+            // Get the full encoder details (either from fullHelp or direct properties)
+            const fullEncoder = encoder.fullHelp || encoder;
+
+            let command = `ffmpeg -i input.mp4 `;
+
+            // Add encoder options
+            const options = fullEncoder.options || [];
+            options.forEach(option => {
+                const input = document.getElementById('opt_' + option.name);
+                if (input && input.value) {
+                    command += `-${option.name} ${input.value} `;
+                }
+            });
+
+            command += `-c:v ${selectedName} output.mp4`;
+
+            document.getElementById('commandOutput').textContent = command;
+        }
+
+        function copyCommand() {
+            const command = document.getElementById('commandOutput').textContent;
+            navigator.clipboard.writeText(command).then(() => {
+                showSuccess('Command copied to clipboard!');
+            }).catch(() => {
+                showError('Failed to copy command');
+            });
+        }
+
+        function showError(message) {
+            const div = document.getElementById('error');
+            div.textContent = message;
+            div.style.display = 'block';
+            setTimeout(() => { div.style.display = 'none'; }, 5000);
+        }
+
+        function showSuccess(message) {
+            const div = document.getElementById('success');
+            div.textContent = message;
+            div.style.display = 'block';
+            setTimeout(() => { div.style.display = 'none'; }, 3000);
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
