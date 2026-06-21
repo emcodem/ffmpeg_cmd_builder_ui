@@ -1,5 +1,7 @@
 # node-ffmpeg-helper
 
+**Online Demo:** [ffmpeg-cmd-builder.html](https://emcodem.github.io/ffmpeg_cmd_builder_ui/ffmpeg-cmd-builder.html)
+
 A tool that interrogates the locally installed `ffmpeg` binary, parses its full capability set into structured JSON, and serves three browser-based UIs for exploring and building ffmpeg commands.
 
 ## How it works
