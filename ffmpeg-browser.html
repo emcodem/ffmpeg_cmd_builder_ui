@@ -386,7 +386,7 @@
                 loadCategory('protocols');
             } catch (error) {
                 console.error('Error loading data:', error);
-                document.querySelector('.placeholder').textContent = 'Error loading data. Make sure server is running on port 8000.';
+                document.querySelector('.placeholder').textContent = 'Error loading data. Make sure example_output.json exists (run: node app.js).';
             }
         }
 

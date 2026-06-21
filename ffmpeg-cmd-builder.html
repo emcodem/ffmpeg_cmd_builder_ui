@@ -567,12 +567,12 @@
 
         async function loadData() {
             try {
-                const response = await fetch('http://localhost:8000/example_output.json');
+                const response = await fetch('example_output.json');
                 allData = await response.json();
                 populateSelects();
             } catch (error) {
                 console.error('Error loading data:', error);
-                alert('Error loading FFmpeg data. Make sure the server is running on port 8000.');
+                alert('Error loading FFmpeg data. Make sure example_output.json exists (run: node app.js).');
             }
         }
 
